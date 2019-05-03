@@ -252,7 +252,7 @@ let csvNA = null;
   //     await driver.quit();
   //     throw new Error('Test Fail');
   //   }
-  // };
+  };
   let failCaseList = [];
   await testResult();
   await driver.quit();
