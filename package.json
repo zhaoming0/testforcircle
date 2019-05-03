@@ -7,23 +7,8 @@
     "lib": "lib"
   },
   "scripts": {
-    "watch": "webpack --watch",
-    "start": "webpack-dev-server --open",
-    "build": "webpack",
-    "build-wasm": "node build.js --build-wasm",
     "test": "node test-ci.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/intel/webml-polyfill.git"
-  },
-  "keywords": [],
-  "author": "ningxin.hu@intel.com",
-  "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/intel/webml-polyfill/issues"
-  },
-  "homepage": "https://github.com/intel/webml-polyfill#readme",
   "devDependencies": {
     "chromedriver": "2.46.0",
     "fast-csv": "^2.4.1",
