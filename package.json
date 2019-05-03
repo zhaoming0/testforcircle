@@ -18,6 +18,7 @@
     "url": "git+https://github.com/intel/webml-polyfill.git"
   },
   "devDependencies": {
+    "ecstatic": "^2.0.0",
     "http-server": "^0.10.0",
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.1",
