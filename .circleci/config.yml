@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~
     docker:
-        - image: circleci/node:lts-browsers
+        - image: circleci/node:latest
     steps:
       - checkout
       - run: npm install
