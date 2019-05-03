@@ -208,51 +208,51 @@ let csvNA = null;
     let vr = await driver.findElement(By.xpath('//*[@id="info-view-table"]/tbody/tr[2]/td[2]/span')).getText();
     await driver.sleep(1000);
     console.log('chrome version is :' + vr + '\n');
-    for (let j of backends) {
-      let totalResult;
-      for (let i of backendModels) {
-        if ((i.indexOf(platform) != -1) && (i.indexOf(j) != -1)) {
-          backendModel = i;
-          console.log('Begin test with : ' + i + ' backend.');
-          totalResult = baselinejson[i];
-          // let testlink = path.join('file:\/\/', __dirname, 'test', 'cts.html?backend=');
-          let testlink = 'https://brucedai.github.io/nt/test/ci.html?backend=';
-          await driver.get(testlink + j.toLowerCase());
-          for (let t = 0; t <= 6; t++) {
-            let time_begin = await driver.findElement(By.xpath('//ul[@id="mocha-stats"]/li[@class="duration"]//em')).getText();
-            await driver.sleep(10000);
-            let time_end = await driver.findElement(By.xpath('//ul[@id="mocha-stats"]/li[@class="duration"]//em')).getText();
-            if (time_begin === time_end) {
-              // add check, if pass/fail not match baseline will exit.
-              let passResult = await driver.findElement(By.xpath('//*[@id="mocha-stats"]/li[2]/em')).getText();
-              let failResult = await driver.findElement(By.xpath('//*[@id="mocha-stats"]/li[3]/em')).getText();
-              if (totalResult.pass > passResult) {
-                let str = 'Expect pass is :' + totalResult.pass + ' and actual result is : ' + passResult + ' will exit process !';
-                throw new Error(str);
-              }
-              if (totalResult.fail < failResult) {
-                let str = 'Expect fail is :' + totalResult.fail + ' and actual result is : ' + failResult + ' will exit process !';
-                throw new Error(str);
-              }
-              break;
-            };
-          }
-          countPasses = 0;
-          countFailures = 0;
-          countPending = 0;
-          await grasp();
-        }
-      }
-    }
-    if (failCaseList.length > 0) {
-      console.log('Test fail, below case get different result with expect data : ');
-      for (let i = 0; i< failCaseList.length; i++ ) {
-        console.log(failCaseList[i]);
-      }
-      await driver.quit();
-      throw new Error('Test Fail');
-    }
-  };
+  //   for (let j of backends) {
+  //     let totalResult;
+  //     for (let i of backendModels) {
+  //       if ((i.indexOf(platform) != -1) && (i.indexOf(j) != -1)) {
+  //         backendModel = i;
+  //         console.log('Begin test with : ' + i + ' backend.');
+  //         totalResult = baselinejson[i];
+  //         // let testlink = path.join('file:\/\/', __dirname, 'test', 'cts.html?backend=');
+  //         let testlink = 'https://brucedai.github.io/nt/test/ci.html?backend=';
+  //         await driver.get(testlink + j.toLowerCase());
+  //         for (let t = 0; t <= 6; t++) {
+  //           let time_begin = await driver.findElement(By.xpath('//ul[@id="mocha-stats"]/li[@class="duration"]//em')).getText();
+  //           await driver.sleep(10000);
+  //           let time_end = await driver.findElement(By.xpath('//ul[@id="mocha-stats"]/li[@class="duration"]//em')).getText();
+  //           if (time_begin === time_end) {
+  //             // add check, if pass/fail not match baseline will exit.
+  //             let passResult = await driver.findElement(By.xpath('//*[@id="mocha-stats"]/li[2]/em')).getText();
+  //             let failResult = await driver.findElement(By.xpath('//*[@id="mocha-stats"]/li[3]/em')).getText();
+  //             if (totalResult.pass > passResult) {
+  //               let str = 'Expect pass is :' + totalResult.pass + ' and actual result is : ' + passResult + ' will exit process !';
+  //               throw new Error(str);
+  //             }
+  //             if (totalResult.fail < failResult) {
+  //               let str = 'Expect fail is :' + totalResult.fail + ' and actual result is : ' + failResult + ' will exit process !';
+  //               throw new Error(str);
+  //             }
+  //             break;
+  //           };
+  //         }
+  //         countPasses = 0;
+  //         countFailures = 0;
+  //         countPending = 0;
+  //         await grasp();
+  //       }
+  //     }
+  //   }
+  //   if (failCaseList.length > 0) {
+  //     console.log('Test fail, below case get different result with expect data : ');
+  //     for (let i = 0; i< failCaseList.length; i++ ) {
+  //       console.log(failCaseList[i]);
+  //     }
+  //     await driver.quit();
+  //     throw new Error('Test Fail');
+  //   }
+  // };
   let failCaseList = [];
   await testResult();
   await driver.quit();
