@@ -8,12 +8,13 @@ class OnnxModelImporter {
     this._tensorTypes = [];
     this._operations = [];
     this._operands = [];
+    this._requiredOps = new Set();
     this._options = {
       softmax: kwargs.softmax, 
     };
     this._operandIndex = 0;
     this._backend = kwargs.backend;
-    this._prefer = kwargs.prefer
+    this._prefer = kwargs.prefer;
     if (this._backend === 'WebML') {
       if (nnNative === null) {
         throw Error('Fails to initialize neural network context');
@@ -25,8 +26,11 @@ class OnnxModelImporter {
   }
 
   async createCompiledModel() {
-    let options = {};
-    options.backend = this._backend;
+    let options = {
+      backend: this._backend,
+      eager: eager || false,
+      supportedOps: supportedOps,
+    };
     this._model = await this._nn.createModel(options);
 
     this._addTensorOperands();
@@ -126,7 +130,7 @@ class OnnxModelImporter {
         type = this._nn.TENSOR_INT32;
       } break;
       default: {
-        throw new Error(`tensor type ${tensorType.elemType} is not supproted.`);
+        throw new Error(`tensor type ${tensorType.elemType} is not supported.`);
       }
     }
     dims = dims.length ? Array.from(dims) : [1]; // scalars have shape []
@@ -160,6 +164,7 @@ class OnnxModelImporter {
   _addOperation(opCode, inputs, outputs) {
     // Cache operaion. It depends on operands that have not yet been added
     this._operations.push([opCode, inputs, outputs]);
+    this._requiredOps.add(opCode);
   }
 
   _addNewTensorOperand(name, type, value) {
@@ -204,9 +209,13 @@ class OnnxModelImporter {
     return info.type;
   }
 
-  _addOpsAndParams() {
+  _addOpsAndParams(lastNode) {
     const graph = this._rawModel.graph;
-    for (let i = 0; i < graph.node.length; ++i) {
+    let i;
+    if (typeof lastNode === 'undefined') {
+      lastNode = graph.node.length - 1;
+    }
+    for (i = 0; i <= lastNode; ++i) {
       let node = graph.node[i];
       console.log(`opType: ${node.opType}`);
       let opCode;
@@ -710,6 +719,36 @@ class OnnxModelImporter {
           console.log(`  output ${output}: [${outputDims}]`);
           opCode = this._nn.RESHAPE;
         } break;
+        case 'Flatten': {
+          console.log(`  inputs: [${node.input}]`);
+          const input = node.input[0];
+          const axis = getAttributeValue(node, 'axis', 1);
+          const inputId = this._getTensorIdByName(input);
+          inputs.push(inputId);
+
+          const inputDims = this._getTensorTypeByName(input).dimensions;
+          const rank = inputDims.length;
+          if (axis > rank || axis < 0) {
+            throw new Error(`Axis ${axis} is not in the range [0, ${rank}]`);
+          }
+          let outputDim1 = inputDims.slice(0, axis);
+          outputDim1 = outputDim1.length ? product(outputDim1) : 1;
+          let outputDim2 = inputDims.slice(axis);
+          outputDim2 = outputDim2.length ? product(outputDim2) : 1;
+          const outputDims =  [outputDim1, outputDim2];
+
+          const shapeType = {type: this._nn.TENSOR_INT32, dimensions: [2]};
+          const shapeId = this._addNewTensorOperand(`shape_${name}`, shapeType, new Int32Array(outputDims)); 
+          inputs.push(shapeId);
+
+          // Add outputs
+          const output = node.output[0];
+          const outputType = {type: this._nn.TENSOR_FLOAT32, dimensions: Array.from(outputDims)};
+          const outputId = this._addNewTensorOperand(output, outputType);
+          outputs.push(outputId);
+          console.log(`  output ${output}: [${outputDims}]`);
+          opCode = this._nn.RESHAPE;
+        } break;
         case 'Unsqueeze': {
           const input = node.input[0];
           const inputDims = this._getTensorTypeByName(input).dimensions;
@@ -731,8 +770,6 @@ class OnnxModelImporter {
           // Set beta to 1.0
           inputs.push(this._addScalarFloat32(1.0));
           const output = node.output[0];
-          outputs.push(this._getTensorIdByName(output));
-
           const inputType = this._getTensorTypeByName(input);
           const outputType = {type: this._nn.TENSOR_FLOAT32, dimensions: inputType.dimensions};
           const outputId = this._addNewTensorOperand(output, outputType);
@@ -790,5 +827,10 @@ class OnnxModelImporter {
     for (const [opCode, inputs, outputs] of this._operations) {
       this._model.addOperation(opCode, inputs, outputs);
     }
+    return i - 1;
+  }
+
+  async getRequiredOps() {
+    return this._requiredOps;
   }
 }

@@ -86,7 +86,7 @@ function getTensorData(tensor) {
       break;
 
     default: {
-      throw new Error(`tensor type ${tensor.dataType} is not supproted.`);
+      throw new Error(`tensor type ${tensor.dataType} is not supported.`);
     }
   }
 
@@ -207,11 +207,12 @@ function printOnnxModel(model) {
       case 'Mul': {} break;
       case 'Constant': {} break;
       case 'Reshape': {} break;
+      case 'Flatten': {} break;
       case 'Gemm': {} break;
       case 'Sum': {} break;
       case 'Unsqueeze': {} break;
       default: {
-        console.warn(`    ${node.opType} is not supported.}`);
+        throw new Error(`    ${node.opType} is not supported.`);
       }
     }
   }
